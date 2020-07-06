@@ -12,6 +12,10 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/***
+ * 템플릿에서 사용할 pptx의 각 슬라이드의 파싱 정보를 담아 둘 클래스
+ * @author kdm1jkm
+ */
 public class TemplateSlide {
     public static final Pattern REGEX_CONTENT = Pattern.compile("!.+");
     public static final Pattern REGEX_TITLE = Pattern.compile("#.+");

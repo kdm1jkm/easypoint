@@ -15,10 +15,11 @@ public class Main {
 
         Manager m = new Manager(new File("test.pptx"));
         m.append(0);
-        for(String s: m.modifiedSlides.get(0).data.keySet()){
+        for (String s : m.modifiedSlides.get(0).data.keySet()) {
             System.out.println("s = " + s);
         }
         m.modifiedSlides.get(0).data.put("제목", "이거슨 제목일겁니다.");
+        m.save(new File("output.eptx"));
         m.export(new File("output.pptx"));
 
     }

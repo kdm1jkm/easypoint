@@ -3,7 +3,7 @@ package com.github.kdm1jkm.easypoint;
 import javafx.fxml.LoadException;
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
 import org.apache.poi.xslf.usermodel.XSLFSlide;
-import org.etsi.uri.x01903.v13.UnsignedSignaturePropertiesType;
+import org.json.simple.JSONArray;
 
 import javax.naming.NameNotFoundException;
 import java.io.*;
@@ -11,14 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 public class Manager {
     private static final String ZIP_PPTX_NAME = "template.pptx";
     private static final String ZIP_JSON_NAME = "data.json";
     private static final int BUFFER_SIZE = 2048;
-    private XMLSlideShow templateSlideShow = null;
     public final List<TemplateSlide> templateSlides = new ArrayList<>();
     public final List<ModifiedSlide> modifiedSlides = new ArrayList<>();
+    private XMLSlideShow templateSlideShow = null;
 
     Manager(File file) throws IOException {
         String fileName = file.getName();
@@ -33,11 +34,11 @@ public class Manager {
                 break;
         }
 
-        if(templateSlideShow == null){
+        if (templateSlideShow == null) {
             throw new LoadException("File Loading Error.");
         }
 
-        for(XSLFSlide slide : templateSlideShow.getSlides()){
+        for (XSLFSlide slide : templateSlideShow.getSlides()) {
             templateSlides.add(new TemplateSlide(null, slide));
         }
 
@@ -116,7 +117,7 @@ public class Manager {
 
     public void append(String name) throws NameNotFoundException {
         for (int i = 0; i < templateSlides.size(); i++) {
-            if(templateSlides.get(i).name.equals(name)){
+            if (templateSlides.get(i).name.equals(name)) {
                 append(i);
                 return;
             }
@@ -134,16 +135,59 @@ public class Manager {
         XMLSlideShow newSlideshow = new XMLSlideShow(templateSlideShow.getPackage());
 
         // 슬라이드 모두 삭제
-        while(newSlideshow.getSlides().size() != 0)newSlideshow.removeSlide(0);
+        while (newSlideshow.getSlides().size() != 0) newSlideshow.removeSlide(0);
 
-        for (ModifiedSlide modifiedSlide : modifiedSlides){
+        for (ModifiedSlide modifiedSlide : modifiedSlides) {
             XSLFSlide newSlide = newSlideshow.createSlide(modifiedSlide.parent.original.getSlideLayout());
             modifiedSlide.apply(newSlide);
         }
 
         newSlideshow.write(out);
         out.close();
+    }
 
+    public void save(File file) throws IOException {
+        file.getAbsoluteFile().getParentFile().mkdirs();
+        FileOutputStream fout = new FileOutputStream(file);
+        ZipOutputStream zout = new ZipOutputStream(fout);
+
+        // JSON파일
+        zout.putNextEntry(new ZipEntry(ZIP_JSON_NAME));
+        zout.write(getModifiedJSON().toJSONString().getBytes());
+        zout.closeEntry();
+        // pptx파일
+        zout.putNextEntry(new ZipEntry(ZIP_PPTX_NAME));
+        XMLSlideShow out = new XMLSlideShow(templateSlideShow.getPackage());
+        out.write(zout);
+        /*
+         {
+         File temp = File.createTempFile("TEMP_", ".pptx");
+         temp.deleteOnExit();
+         FileOutputStream foutTemplate = new FileOutputStream(temp);
+         System.out.println("temp = " + temp);
+         XMLSlideShow out = new XMLSlideShow(templateSlideShow.getPackage());
+         foutTemplate.close();
+         FileInputStream fin = new FileInputStream(temp);
+         int length;
+         byte[] buffer = new byte[BUFFER_SIZE];
+
+         while ((length = fin.read(buffer, 0, BUFFER_SIZE)) != -1) {
+         zout.write(buffer, 0, length);
+         }
+         }
+         */
+
+        zout.close();
+        fout.close();
+    }
+
+    public JSONArray getModifiedJSON() {
+        JSONArray result = new JSONArray();
+        for (ModifiedSlide modified : modifiedSlides) {
+            result.add(modified.getJSON());
+        }
+
+        return result;
     }
 
 

@@ -1,12 +1,10 @@
 package com.github.kdm1jkm.easypoint;
 
-import com.sun.istack.internal.Nullable;
 import org.apache.poi.xslf.usermodel.XSLFShape;
 import org.apache.poi.xslf.usermodel.XSLFSlide;
 import org.apache.poi.xslf.usermodel.XSLFTextShape;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.util.*;
@@ -20,11 +18,10 @@ public class ModifiedSlide {
     public final LinkedHashMap<String, String> data = new LinkedHashMap<>();
     public String name;
 
-    ModifiedSlide(TemplateSlide parent, String JSONString) throws ParseException {
+
+    ModifiedSlide(TemplateSlide parent, JSONArray array) throws ParseException {
         this.parent = parent;
 
-        JSONParser parser = new JSONParser();
-        JSONArray array = (JSONArray) parser.parse(JSONString);
         name = (String) array.get(0);
         JSONObject obj = (JSONObject) array.get(1);
 
@@ -38,8 +35,9 @@ public class ModifiedSlide {
         parse(keys);
     }
 
-    ModifiedSlide(TemplateSlide parent){
+    ModifiedSlide(TemplateSlide parent) {
         this.parent = parent;
+        name = parent.name;
         parse(new HashMap<>());
     }
 
@@ -48,24 +46,6 @@ public class ModifiedSlide {
                 (XSLFTextShape textShape, String content) ->
                         data.put(content, names.getOrDefault(content, "")),
                 (XSLFTextShape textShape, String title) -> name = title);
-        /*
-        for (XSLFShape shape : parent.original.getShapes()) {
-            if (!(shape instanceof XSLFTextShape)) continue;
-
-            String text = ((XSLFTextShape) shape).getText();
-
-            Matcher contentMatcher = REGEX_CONTENT.matcher(text);
-            Matcher titleMatcher = REGEX_TITLE.matcher(text);
-
-            if (contentMatcher.find()) {
-                String content = contentMatcher.group().substring(1);
-                data.put(content, names.getOrDefault(content, ""));
-            }
-            else if (titleMatcher.find()){
-                name = titleMatcher.group().substring(1);
-            }
-        }
-        */
     }
 
     public void apply(XSLFSlide newSlide) {
@@ -84,7 +64,7 @@ public class ModifiedSlide {
                 (XSLFTextShape textShape, String title) ->
                         delList.add(textShape));
 
-        for(XSLFShape shape : delList){
+        for (XSLFShape shape : delList) {
             newSlide.removeShape(shape);
         }
     }
@@ -113,6 +93,15 @@ public class ModifiedSlide {
         }
     }
 
+    public JSONArray getJSON() {
+        JSONArray jarr = new JSONArray();
+        jarr.add(name);
+        JSONObject obj = new JSONObject();
+        obj.putAll(data);
+        jarr.add(obj);
+        return jarr;
+    }
+
     /**
      * TextShape와 파싱한 글자를 이용하는 인터페이스. 이름을 뭐로 지어야 할 지를 모르겠다.
      */
@@ -120,4 +109,5 @@ public class ModifiedSlide {
     private interface ShapeStrLambda {
         void run(XSLFTextShape textShape, String str);
     }
+
 }
