@@ -5,25 +5,53 @@ import org.apache.poi.xslf.usermodel.XSLFSlide;
 import org.apache.poi.xslf.usermodel.XSLFTextShape;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * 한 슬라이드의 변경 사항을 저장하고 관리하는 클래스이다.
+ */
 public class ModifiedSlide {
-    public static final Pattern REGEX_CONTENT = Pattern.compile("!.+");
-    public static final Pattern REGEX_TITLE = Pattern.compile("#.+");
+    private static final Pattern REGEX_CONTENT = Pattern.compile("!.+");
+    private static final Pattern REGEX_TITLE = Pattern.compile("#.+");
+
+    /**
+     * 원본 {@link TemplateSlide}의 참조이다.
+     */
     public final TemplateSlide parent;
+    /**
+     * 변경사항을 저장할 Map이다. Key에는 텍스트상자명, Value에는 변경될 사항이 들어간다.
+     * 단순한 Map이고, 실제 슬라이드 정보로 내보낼 때 정보를 변경하기 위해 사용하므로 어떤 상관없는 값이 들어가더라도 오류를 일으키지는 않는다.
+     */
     public final LinkedHashMap<String, String> data = new LinkedHashMap<>();
+    /**
+     * 슬라이드명이다.
+     */
     public String name;
 
+    /**
+     * 변경사항이 없을 때 사용하는 생성자이다.
+     *
+     * @param parent 원본 {@link TemplateSlide}이다. 이곳에서 이름과 원본 슬라이드 정보를 받아온다.
+     */
+    ModifiedSlide(TemplateSlide parent) {
+        this.parent = parent;
+        name = parent.name;
+        parse(new HashMap<>());
+    }
 
-    ModifiedSlide(TemplateSlide parent, JSONArray array) throws ParseException {
+    /**
+     * 변경사항을 적용하는 생성자이다.
+     *
+     * @param parent 원본 {@link TemplateSlide}이다. 이곳에서 이름과 원본 슬라이드 정보를 받아온다.
+     * @param obj    JSONArray객체를 받아와 이미 수정된 정보를 받아오는데 사용한다.
+     */
+    ModifiedSlide(TemplateSlide parent, JSONObject obj) {
         this.parent = parent;
 
-        name = (String) array.get(0);
-        JSONObject obj = (JSONObject) array.get(1);
+        name = parent.name;
 
         Map<String, String> keys = new HashMap<>();
 
@@ -35,19 +63,11 @@ public class ModifiedSlide {
         parse(keys);
     }
 
-    ModifiedSlide(TemplateSlide parent) {
-        this.parent = parent;
-        name = parent.name;
-        parse(new HashMap<>());
-    }
-
-    private void parse(Map<String, String> names) {
-        doWithTextShape(parent.original,
-                (XSLFTextShape textShape, String content) ->
-                        data.put(content, names.getOrDefault(content, "")),
-                (XSLFTextShape textShape, String title) -> name = title);
-    }
-
+    /**
+     * 파라미터로 받은 {@link XSLFSlide}객체에 지금까지의 변경사항을 적용한다.
+     *
+     * @param newSlide 변경사항을 적용할 {@link XSLFSlide}객체입니다.
+     */
     public void apply(XSLFSlide newSlide) {
         newSlide.importContent(parent.original);
         List<XSLFShape> delList = new ArrayList<>();
@@ -70,12 +90,26 @@ public class ModifiedSlide {
     }
 
     /**
-     * 슬라이드의 모든 Shape에 대해 REGEX_CONTENT와 REGEX_TITLE에 맞는 것들을 각각 runWhenContent와 runWhenTitle로 실행하는 함수.
+     * 현재까지의 변경사항을 JSONObject의 JSONArray로 변환해 반환하는 함수
      *
-     * @param slide          모든 Shape를 찾아낼 슬라이드
-     * @param runWhenContent REGEX_CONTENT에 맞는 TextShape에 대해 실행할 Lambda
-     * @param runWhenTitle   REGEX_TITLE에 맞는 TextShape에 대해 실행할 Lambda
+     * @return 변경사항을 JSONArray로 변환한 것
      */
+    public JSONArray getJSON() {
+        JSONArray jarr = new JSONArray();
+        jarr.add(name);
+        JSONObject obj = new JSONObject();
+        obj.putAll(data);
+        jarr.add(obj);
+        return jarr;
+    }
+
+    private void parse(Map<String, String> names) {
+        doWithTextShape(parent.original,
+                (XSLFTextShape textShape, String content) ->
+                        data.put(content, names.getOrDefault(content, "")),
+                (XSLFTextShape textShape, String title) -> name = title);
+    }
+
     private void doWithTextShape(XSLFSlide slide, ShapeStrLambda runWhenContent, ShapeStrLambda runWhenTitle) {
         for (XSLFShape shape : slide.getShapes()) {
             if (!(shape instanceof XSLFTextShape)) continue;
@@ -93,21 +127,8 @@ public class ModifiedSlide {
         }
     }
 
-    public JSONArray getJSON() {
-        JSONArray jarr = new JSONArray();
-        jarr.add(name);
-        JSONObject obj = new JSONObject();
-        obj.putAll(data);
-        jarr.add(obj);
-        return jarr;
-    }
-
-    /**
-     * TextShape와 파싱한 글자를 이용하는 인터페이스. 이름을 뭐로 지어야 할 지를 모르겠다.
-     */
     @FunctionalInterface
     private interface ShapeStrLambda {
         void run(XSLFTextShape textShape, String str);
     }
-
 }
