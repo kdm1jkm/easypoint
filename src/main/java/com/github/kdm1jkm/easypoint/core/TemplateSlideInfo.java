@@ -1,4 +1,4 @@
-package com.github.kdm1jkm.easypoint;
+package com.github.kdm1jkm.easypoint.core;
 
 import org.json.simple.JSONArray;
 

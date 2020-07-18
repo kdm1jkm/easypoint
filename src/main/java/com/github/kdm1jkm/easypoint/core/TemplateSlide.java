@@ -1,6 +1,5 @@
-package com.github.kdm1jkm.easypoint;
+package com.github.kdm1jkm.easypoint.core;
 
-import com.sun.istack.internal.Nullable;
 import org.apache.poi.xslf.usermodel.XSLFShape;
 import org.apache.poi.xslf.usermodel.XSLFSlide;
 import org.apache.poi.xslf.usermodel.XSLFTextShape;
@@ -49,7 +48,7 @@ public class TemplateSlide {
      * @param name     슬라이드의 이름이다. 파싱 시 나온 이름이 있을경우 이 이름은 무시된다.
      * @param original 원본 슬라이드이다.
      */
-    public TemplateSlide(@Nullable String name, XSLFSlide original) {
+    public TemplateSlide(String name, XSLFSlide original) {
         this.original = original;
         if (name == null) {
             this.name = String.format("Untitled %d", count);

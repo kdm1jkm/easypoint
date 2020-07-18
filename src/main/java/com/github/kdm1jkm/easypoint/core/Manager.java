@@ -1,6 +1,5 @@
-package com.github.kdm1jkm.easypoint;
+package com.github.kdm1jkm.easypoint.core;
 
-import javafx.fxml.LoadException;
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
 import org.apache.poi.xslf.usermodel.XSLFSlide;
 import org.json.simple.JSONArray;
@@ -43,7 +42,7 @@ public class Manager {
      * @throws IOException    파일을 열고 닫는 과정에서 생기는 예외
      * @throws ParseException JSON파일을 파싱하는 과정에서 생기는 예외
      */
-    Manager(File file) throws IOException, ParseException {
+    public Manager(File file) throws IOException, ParseException {
         String fileName = file.getName();
         String[] arr = fileName.split("\\.");
         switch (arr[arr.length - 1]) {
@@ -62,7 +61,7 @@ public class Manager {
         }
 
         if (templateSlideShow == null) {
-            throw new LoadException("File Loading Error.");
+            throw new FileNotFoundException("Can't load file");
         }
 
 
@@ -134,11 +133,11 @@ public class Manager {
         FileOutputStream fout = new FileOutputStream(file);
         ZipOutputStream zout = new ZipOutputStream(fout);
 
-        // JSON파일
+        // JSON 파일
         zout.putNextEntry(new ZipEntry(ZIP_JSON_NAME));
         zout.write(getModifiedJSON().toJSONString().getBytes());
         zout.closeEntry();
-        // pptx파일
+        // pptx 파일
         zout.putNextEntry(new ZipEntry(ZIP_PPTX_NAME));
         XMLSlideShow out = new XMLSlideShow(templateSlideShow.getPackage());
         out.write(zout);
