@@ -11,7 +11,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 public class CLIManager {
-//    private final Scanner scanner = new Scanner(System.in);
+    //    private final Scanner scanner = new Scanner(System.in);
     private Manager manager;
     private boolean isEnd = false;
 
@@ -74,7 +74,7 @@ public class CLIManager {
         String path = file.getAbsolutePath();
         path = path.substring(0, path.length() - 5);
 
-        if(file.getName().endsWith(".pptx")){
+        if (file.getName().endsWith(".pptx")) {
             manager.save(new File(path + ".eptx"));
         }
 
@@ -115,9 +115,11 @@ public class CLIManager {
                 } else {
                     System.out.println(String.format("(%s) %s", title, l));
                     String[] split_l = l.split(": ");
-                    String k = split_l[0];
-                    String v = split_l[1];
-                    current.data.put(k, v);
+                    if(split_l.length > 1) {
+                        String k = split_l[0];
+                        String v = split_l[1];
+                        current.data.put(k, v);
+                    }
                 }
             }
             manager.save(file);
@@ -127,7 +129,8 @@ public class CLIManager {
         if (line.hasOption("current")) {
             isEnd = true;
             File currentFile = new File(path + "_currentState.txt");
-            FileWriter writer = new FileWriter(currentFile);
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(currentFile), StandardCharsets.UTF_8));
+//            FileWriter writer = new FileWriter(currentFile);
 
             for (ModifiedSlide modifiedSlide : manager.modifiedSlides) {
                 writer.write(String.format("# %s\n", modifiedSlide.name));
@@ -145,11 +148,11 @@ public class CLIManager {
         }
 
 
-        if(line.hasOption("o_pptx")){
+        if (line.hasOption("o_pptx")) {
             manager.getOriginalSlideshow().write(new FileOutputStream(new File(path + "_original.pptx")));
         }
 
-        if(line.hasOption("pptx")){
+        if (line.hasOption("pptx")) {
             manager.export(new File(path + ".pptx"));
         }
     }
