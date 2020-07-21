@@ -1,21 +1,49 @@
 package com.github.kdm1jkm.easypoint;
 
 
-import com.github.kdm1jkm.easypoint.core.Manager;
-import org.apache.poi.xslf.usermodel.XMLSlideShow;
-import org.apache.poi.xslf.usermodel.XSLFSlide;
-import org.apache.poi.xslf.usermodel.XSLFTextShape;
+import com.github.kdm1jkm.easypoint.cli.CLIManager;
 import org.json.simple.parser.ParseException;
 
+import javax.naming.NameNotFoundException;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Scanner;
 
 public class Main {
+//    /*
+    public static void main(String[] args) {
+//        String fileName;
+//        if (args.length != 1) {
+//            System.out.println("Usage: java -jar easypoint.jar <FileName>");
+//            return;
+//        } else {
+//            fileName = args[0];
+//        }
+//        File file = new File(fileName);
+//
+//        if (!file.exists()) {
+//            System.out.println(String.format("Can't find %s", fileName));
+//            return;
+//        } else if (file.isDirectory()) {
+//            System.out.println(String.format("%s is directory, not a file.", fileName));
+//            return;
+//        }
+
+        CLIManager manager = null;
+        try {
+            manager = new CLIManager(args);
+        } catch (IOException | ParseException | org.apache.commons.cli.ParseException | NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
+//        while(!manager.isEnd()){
+//            manager
+//        }
+        /**/
+    }
+
+    // 그냥 라이브러리 테스트
+    /*
     public static void main(String[] args) throws IOException, ParseException {
-        /*
         System.out.println("Hello, world!");
 
         System.out.print("Enter filename: ");
@@ -34,10 +62,12 @@ public class Main {
         FileOutputStream out = new FileOutputStream(new File("output.pptx"));
         show.write(out);
         out.close();
-        /**/
+    }
+    /**/
 
-
-//        /*
+    // Manager 테스트
+    /*
+    public static void main(String[] args) throws IOException, ParseException {
         Manager m = new Manager(new File("test.pptx"));
         m.append(0);
         for (String s : m.modifiedSlides.get(0).data.keySet()) {
@@ -48,30 +78,6 @@ public class Main {
 
         Manager other = new Manager(new File("output.eptx"));
         other.export(new File("output.pptx"));
-        /**/
-
-
-        /*
-        String fileName;
-        if (args.length != 1) {
-            System.out.println("Usage: java -jar easypoint.jar <FileName>");
-            fileName = "test.pptx";
-//            return;
-        } else {
-            fileName = args[0];
-        }
-        File file = new File(fileName);
-
-        if (!file.exists()) {
-            System.out.println(String.format("Can't find %s", fileName));
-            return;
-        } else if (file.isDirectory()) {
-            System.out.println(String.format("%s is directory, not a file.", fileName));
-            return;
-        }
-
-//        CLIManager
-        /**/
-
     }
+    /**/
 }

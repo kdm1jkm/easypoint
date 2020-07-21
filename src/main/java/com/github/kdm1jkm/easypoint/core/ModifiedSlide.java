@@ -1,12 +1,17 @@
 package com.github.kdm1jkm.easypoint.core;
 
-import org.apache.poi.xslf.usermodel.XSLFShape;
-import org.apache.poi.xslf.usermodel.XSLFSlide;
-import org.apache.poi.xslf.usermodel.XSLFTextShape;
+import org.apache.poi.sl.usermodel.PaintStyle;
+import org.apache.poi.sl.usermodel.TextRun;
+import org.apache.poi.sl.usermodel.TextShape;
+import org.apache.poi.xslf.usermodel.*;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,15 +83,26 @@ public class ModifiedSlide {
                     if (newText.equals("")) {
                         delList.add(textShape);
                     } else {
+                        XSLFTextRun original = textShape.getTextParagraphs().get(0).getTextRuns().get(0);
                         textShape.setText(newText);
+                        textShape.forEach(textParagraph -> {
+                            textParagraph.forEach(textRun->{
+                                textRun.setFontColor(original.getFontColor());
+                                textRun.setFontSize(original.getFontSize());
+                                textRun.setBold(original.isBold());
+                                textRun.setItalic(original.isItalic());
+                            });
+                        });
                     }
                 },
                 (XSLFTextShape textShape, String title) ->
                         delList.add(textShape));
 
-        for (XSLFShape shape : delList) {
-            newSlide.removeShape(shape);
-        }
+        delList.forEach(newSlide::removeShape);
+//        for (XSLFShape shape : delList) {
+//            newSlide.removeShape(shape);
+//        }
+
     }
 
     /**
@@ -110,7 +126,9 @@ public class ModifiedSlide {
                 (XSLFTextShape textShape, String title) -> name = title);
     }
 
-    private void doWithTextShape(XSLFSlide slide, ShapeStrLambda runWhenContent, ShapeStrLambda runWhenTitle) {
+    private void doWithTextShape(XSLFSlide slide,
+                                 BiConsumer<XSLFTextShape, String> runWhenContent,
+                                 BiConsumer<XSLFTextShape, String> runWhenTitle) {
         for (XSLFShape shape : slide.getShapes()) {
             if (!(shape instanceof XSLFTextShape)) continue;
 
@@ -120,15 +138,12 @@ public class ModifiedSlide {
             Matcher titleMatcher = REGEX_TITLE.matcher(text);
 
             if (contentMatcher.find()) {
-                runWhenContent.run((XSLFTextShape) shape, contentMatcher.group().substring(1));
+                runWhenContent.accept((XSLFTextShape) shape, contentMatcher.group().substring(1));
+//                runWhenContent.run((XSLFTextShape) shape, contentMatcher.group().substring(1));
             } else if (titleMatcher.find()) {
-                runWhenTitle.run((XSLFTextShape) shape, titleMatcher.group().substring(1));
+//                runWhenTitle.run((XSLFTextShape) shape, titleMatcher.group().substring(1));
+                runWhenTitle.accept((XSLFTextShape) shape, titleMatcher.group().substring(1));
             }
         }
-    }
-
-    @FunctionalInterface
-    private interface ShapeStrLambda {
-        void run(XSLFTextShape textShape, String str);
     }
 }

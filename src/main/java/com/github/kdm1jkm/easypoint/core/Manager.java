@@ -2,6 +2,7 @@ package com.github.kdm1jkm.easypoint.core;
 
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
 import org.apache.poi.xslf.usermodel.XSLFSlide;
+import org.apache.poi.xslf.usermodel.XSLFTextShape;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -73,10 +74,13 @@ public class Manager {
      *
      * @param index {@link #templateSlides}의 몇 번째 슬라이드를 추가할 것인지를 지정합니다.
      */
-    public void append(int index) {
+    public ModifiedSlide append(int index) {
         TemplateSlide templateSlide = templateSlides.get(index);
+        ModifiedSlide new_modified = new ModifiedSlide(templateSlide);
 
-        modifiedSlides.add(new ModifiedSlide(templateSlide));
+        modifiedSlides.add(new_modified);
+
+        return new_modified;
     }
 
     /**
@@ -85,11 +89,10 @@ public class Manager {
      * @param name {@link #templateSlides}에서 찾을 슬라이드 이름입니다.
      * @throws NameNotFoundException {@link #templateSlides}에서 name이라는 이름의 슬라이드를 찾지 못했을 경우 발생합니다.
      */
-    public void append(String name) throws NameNotFoundException {
+    public ModifiedSlide append(String name) throws NameNotFoundException {
         for (int i = 0; i < templateSlides.size(); i++) {
             if (templateSlides.get(i).name.equals(name)) {
-                append(i);
-                return;
+                return append(i);
             }
         }
 
@@ -117,6 +120,14 @@ public class Manager {
             XSLFSlide newSlide = newSlideshow.createSlide(modifiedSlide.parent.original.getSlideLayout());
             modifiedSlide.apply(newSlide);
         }
+
+        newSlideshow.getSlides().forEach(slide->{
+            slide.getShapes().forEach(shape->{
+                if(shape instanceof XSLFTextShape)
+                    System.out.println("((XSLFTextShape) shape).getText() = " + ((XSLFTextShape) shape).getText());
+            });
+        });
+        System.out.println("file.getAbsolutePath() = " + file.getAbsolutePath());
 
         newSlideshow.write(out);
         out.close();
@@ -177,8 +188,16 @@ public class Manager {
         return result;
     }
 
+    /**
+     * 원본 XMLSlideShow객체를 복제해서 리턴합니다.
+     * @return 원본 XMLSlideShow객체의 복사본
+     */
+    public XMLSlideShow getOriginalSlideshow(){
+        return new XMLSlideShow(templateSlideShow.getPackage());
+    }
 
-    private void getFromZip(ZipInputStream zipInputStream) throws IOException, ParseException {
+
+    private void getFromZip(ZipInputStream zipInputStream) throws IOException {
         ZipEntry zipEntry;
         // 압축파일 속 각 파일에 대해
         while ((zipEntry = zipInputStream.getNextEntry()) != null) {
@@ -191,8 +210,8 @@ public class Manager {
             String fileName = zipEntry.getName();
 
             // 스트림을 옮겨줌
-            PipedInputStream pipedInputStream = new PipedInputStream();
-            PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream);
+//            PipedInputStream pipedInputStream = new PipedInputStream();
+//            PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream);
 
             // 데이터 저장?공간
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
