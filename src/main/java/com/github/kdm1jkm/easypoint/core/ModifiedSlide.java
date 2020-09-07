@@ -1,16 +1,13 @@
 package com.github.kdm1jkm.easypoint.core;
 
-import org.apache.poi.sl.usermodel.PaintStyle;
-import org.apache.poi.sl.usermodel.TextRun;
-import org.apache.poi.sl.usermodel.TextShape;
-import org.apache.poi.xslf.usermodel.*;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xslf.usermodel.XSLFShape;
+import org.apache.poi.xslf.usermodel.XSLFSlide;
+import org.apache.poi.xslf.usermodel.XSLFTextRun;
+import org.apache.poi.xslf.usermodel.XSLFTextShape;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.awt.*;
 import java.util.*;
-import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -86,11 +83,13 @@ public class ModifiedSlide {
                         XSLFTextRun original = textShape.getTextParagraphs().get(0).getTextRuns().get(0);
                         textShape.setText(newText);
                         textShape.forEach(textParagraph -> {
-                            textParagraph.forEach(textRun->{
+                            textParagraph.forEach(textRun -> {
                                 textRun.setFontColor(original.getFontColor());
                                 textRun.setFontSize(original.getFontSize());
                                 textRun.setBold(original.isBold());
                                 textRun.setItalic(original.isItalic());
+                                textRun.setFontFamily(original.getFontFamily());
+                                textRun.setUnderlined(original.isUnderlined());
                             });
                         });
                     }
