@@ -2,11 +2,6 @@ package com.github.kdm1jkm.easypoint;
 
 
 import com.github.kdm1jkm.easypoint.cli.CLIManager;
-import org.json.simple.parser.ParseException;
-
-import javax.naming.NameNotFoundException;
-import java.io.File;
-import java.io.IOException;
 
 public class Main {
 //    /*
@@ -28,12 +23,7 @@ public class Main {
 //            return;
 //        }
 
-        CLIManager manager = null;
-        try {
-            manager = new CLIManager(args);
-        } catch (IOException | ParseException | org.apache.commons.cli.ParseException | NameNotFoundException e) {
-            e.printStackTrace();
-        }
+        CLIManager manager = new CLIManager(args);
 
 //        while(!manager.isEnd()){
 //            manager
