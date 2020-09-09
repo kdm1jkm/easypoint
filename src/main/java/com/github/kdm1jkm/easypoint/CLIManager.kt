@@ -1,4 +1,4 @@
-package com.github.kdm1jkm.easypoint.cli
+package com.github.kdm1jkm.easypoint
 
 import com.github.kdm1jkm.easypoint.core.Manager
 import com.github.kdm1jkm.easypoint.core.ModifiedSlide
