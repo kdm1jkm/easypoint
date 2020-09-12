@@ -183,7 +183,7 @@ class Manager(file: File) {
 
     private fun parse() {
         for (slide in templateSlideShow!!.slides) {
-            templateSlides.add(TemplateSlide(null, slide))
+            templateSlides.add(TemplateSlide("None", slide))
         }
     }
 
